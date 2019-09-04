@@ -6,31 +6,43 @@ $(document).ready(function () {
 			window.client = _client;
 			client.events.on('app.activated',
 				function () {
-
-					$('#createTicket').click(function () {
-						let title = $('#title').val();
-						let description = $('#desc').val();
-						let email = $('#email').val();
-						if(title && description && email){
-							console.log('not  === empty');
-							CreateFreshdeskTicket(title,description,email);
-						}
-						else{
-							 showNotification('danger', 'Ticket Values cannot empty, Fill all values')
-						}
-					})
+					onLoadClickEventHandler();
 				});
+		},
+			function () {
+				showNotification('danger', 'Unable to load app');
+			});
+
+
+
+	/**
+	 *   Collection of on load Click events 
+	 */
+	function onLoadClickEventHandler() {
+
+		$('#createTicket').click(function () {
+			let title = $('#title').val();				// Ticket title fetched from user Input
+			let desc = $('#desc').val();					// Description of the ticket fetched from user input
+			let email = $('#email').val();				// Email id of the user, creating the ticket
+			if (title && desc && email) {
+				CreateFreshdeskTicket(title, desc, email);
+			}
+			else {
+				showNotification('danger', 'Ticket Values cannot empty, Fill all values')
+			}
 		});
+	}
 
 
 	/**
 	 * 
-	 * Function to Create a ticket 
-	 *
+	 * @param {String} title 					Ticket title
+	 * @param {String} description 		Ticket description
+	 * @param {String} email 					email of the user that creates ticket 
 	 */
-	function CreateFreshdeskTicket(title,description,email) {
+	function CreateFreshdeskTicket(title, description, email) {
 
-		client.request.post("https://vel1124.freshdesk.com/api/v2/tickets", {
+		client.request.post("https://<%=iparam.freshdesk_subdomain%>.freshdesk.com/api/v2/tickets", {
 			headers: {
 				Authorization: "Basic <%= encode(iparam.freshdesk_api_key)%>",
 				"Content-Type": "application/json;charset=utf-8"
@@ -45,22 +57,29 @@ $(document).ready(function () {
 			})
 		}).then(function () {
 			showNotification('success', 'Ticket is successfully created');
+			clearInputfields();
 		})
-		.catch(function () {
-			showNotification('danger', 'Unable to create ticket');
-		});
+			.catch(function () {
+				showNotification('danger', 'Unable to create ticket');
+			});
 	}
 
+
+	/**
+	 * 
+	 * @param {String} status   	Status of the notification
+	 * @param {String} message  	Custom notification message 
+	 */
 	function showNotification(status, message) {
 		client.interface.trigger("showNotify", {
 			type: `${status}`,
 			message: `${message}`
-			/* The "message" should be plain text */
-		}).then(function () {
-			console.log('showed notification');
-		}).catch(function () {
-			console.log('failed to show notification');			
-		});
+		})
+	}
+
+	function clearInputfields() {		
+		$('#title').val('');				// Ticket title fetched from user Input
+		$('#desc').val('');					// Description of the ticket fetched from user input
+		$('#email').val('');
 	}
 });
-  
